@@ -75,7 +75,7 @@ const UserList = () => {
         }}
       />
       <div className="w-full">
-        <header className='fixed top-0 flex justify-center items-center bg-sky-700 w-full p-3 pl-5'>
+        <header className='fixed z-1 top-0 flex justify-center items-center bg-sky-700 w-full p-3 pl-5'>
           <h1 className="text-2xl font-normal text-white">User Management</h1>
         </header>
         {error && <p style={{ color: 'red' }}>{error}</p>}
