@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
+import { Container, Paper, Box, TextField, Button, Typography, Snackbar } from '@mui/material';
 
 const EditUser = () => {
-  // ...existing code...
   const { id } = useParams();
   const [user, setUser] = useState({ first_name: '', last_name: '', email: '' });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({ first_name: '', last_name: '', email: '' });
+  const [globalError, setGlobalError] = useState('');
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchUser = async () => {
     try {
-      // Reqres does not have a dedicated endpoint to get a single user detail in the same shape as needed.
-      // We simulate it by calling the list endpoint or pre-filling from local state.
       const res = await api.get(`/api/users/${id}`);
       setUser(res.data.data);
     } catch (err) {
-      setError('Failed to fetch user data.');
+      setGlobalError('Failed to fetch user data.');
     }
   };
 
@@ -24,46 +24,126 @@ const EditUser = () => {
     fetchUser();
   }, [id]);
 
+  const validate = () => {
+    const newErrors = { first_name: '', last_name: '', email: '' };
+    let isValid = true;
+    if (!user.first_name.trim()) {
+      newErrors.first_name = 'First name is required.';
+      isValid = false;
+    }
+    if (!user.last_name.trim()) {
+      newErrors.last_name = 'Last name is required.';
+      isValid = false;
+    }
+    if (!user.email.trim()) {
+      newErrors.email = 'Email is required.';
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(user.email)) {
+        newErrors.email = 'Invalid email format.';
+        isValid = false;
+      }
+    }
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+    setGlobalError('');
     try {
       await api.put(`/api/users/${id}`, user);
-      alert('User updated successfully.');
       navigate('/users');
     } catch (err) {
-      setError('Update failed.');
+      setOpen(true);
     }
   };
 
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setOpen(false);
+  };
+
   return (
-    <div className="container">
-      <h2>Edit User</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <label>First Name:</label>
-        <input 
-          type="text" 
-          value={user.first_name} 
-          onChange={(e) => setUser({ ...user, first_name: e.target.value })} 
-          required 
-        />
-        <label>Last Name:</label>
-        <input 
-          type="text" 
-          value={user.last_name} 
-          onChange={(e) => setUser({ ...user, last_name: e.target.value })} 
-          required 
-        />
-        <label>Email:</label>
-        <input 
-          type="email" 
-          value={user.email} 
-          onChange={(e) => setUser({ ...user, email: e.target.value })} 
-          required 
-        />
-        <button type="submit">Update User</button>
-      </form>
-    </div>
+    <>
+      <Snackbar
+        open={open}
+        autoHideDuration={5000}
+        onClose={handleClose}
+        message="Update failed."
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            backgroundColor: '#f44336',
+            color: 'white',
+            fontWeight: 'bold',
+          }
+        }}
+      />
+      <Container maxWidth="sm" sx={{ mt: 4 }}>
+        <Paper elevation={3} sx={{ p: 4 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Edit User
+          </Typography>
+          {globalError && <Typography color="error" sx={{ mb: 2 }}>{globalError}</Typography>}
+          <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off">
+            <TextField
+              label="First Name"
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={user.first_name}
+              onChange={(e) => {
+                setUser({ ...user, first_name: e.target.value });
+                setErrors({ ...errors, first_name: '' });
+              }}
+              required
+              error={Boolean(errors.first_name)}
+              helperText={errors.first_name}
+            />
+            <TextField
+              label="Last Name"
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={user.last_name}
+              onChange={(e) => {
+                setUser({ ...user, last_name: e.target.value });
+                setErrors({ ...errors, last_name: '' });
+              }}
+              required
+              error={Boolean(errors.last_name)}
+              helperText={errors.last_name}
+            />
+            <TextField
+              label="Email"
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              type="email"
+              value={user.email}
+              onChange={(e) => {
+                setUser({ ...user, email: e.target.value });
+                setErrors({ ...errors, email: '' });
+              }}
+              required
+              error={Boolean(errors.email)}
+              helperText={errors.email}
+            />
+            <Box className="mt-2 flex justify-center gap-4">
+              <Button variant="contained" color="primary" type="submit">
+                Update User
+              </Button>
+              <Button variant="outlined" onClick={() => navigate('/users')} sx={{ color: '#0080ff', borderColor: '#0080ff' }}>
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </>
   );
 };
 

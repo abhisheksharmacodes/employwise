@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+html,body {
+  height: 100%;
+  width: 100vw;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 100%;
+  margin: 0;
   text-align: center;
 }

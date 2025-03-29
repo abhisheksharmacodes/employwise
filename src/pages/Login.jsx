@@ -1,113 +1,111 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import { Box, TextField, Button, Snackbar } from '@mui/material';
+import { Container, Paper, Box, TextField, Button, Typography, Snackbar } from '@mui/material';
 
 const Login = () => {
-  const [email, setEmail] = useState('eve.holt@reqres.in');
-  const [password, setPassword] = useState('cityslicka');
-  const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState({ email: 'eve.holt@reqres.in', password: 'cityslicka' });
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [globalError, setGlobalError] = useState('');
   const [open, setOpen] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
+
+  const validate = () => {
+    const newErrors = { email: '', password: '' };
+    let isValid = true;
+    if (!credentials.email.trim()) {
+      newErrors.email = 'Email is required.';
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(credentials.email)) {
+        newErrors.email = 'Invalid email format.';
+        isValid = false;
+      }
+    }
+    if (!credentials.password.trim()) {
+      newErrors.password = 'Password is required.';
+      isValid = false;
+    }
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let valid = true;
-    // Validate email field
-    if (!email) {
-      setEmailError('Email is required');
-      valid = false;
-    } else {
-      const emailRegex = /^\S+@\S+\.\S+$/;
-      if (!emailRegex.test(email)) {
-        setEmailError('Invalid email format');
-        valid = false;
-      } else {
-        setEmailError('');
-      }
-    }
-    // Validate password field
-    if (!password) {
-      setPasswordError('Password is required');
-      valid = false;
-    } else {
-      setPasswordError('');
-    }
-    if (!valid) return;
-    // Proceed with API call
+    if (!validate()) return;
+    setGlobalError('');
     try {
-      const res = await api.post('/api/login', { email, password });
+      const res = await api.post('/api/login', credentials);
       localStorage.setItem('token', res.data.token);
       navigate('/users');
     } catch (err) {
+      setGlobalError('Login failed. Please check your credentials.');
       setOpen(true);
     }
   };
 
-  const handleClose = (
-    event, reason
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') return;
     setOpen(false);
   };
 
   return (
-    <>
+    <Container maxWidth="sm" sx={{ mt: 4, px: 0 }}>
       <Snackbar
         open={open}
         autoHideDuration={5000}
         onClose={handleClose}
-        message="Login failed. Check your credentials."
+        message="Login failed."
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         sx={{
-          '& .MuiSnackbarContent-root': { // Targeting the root content of the Snackbar
-            backgroundColor: '#f44336', // Red background color
-            color: 'white',
-            fontWeight: 'bold',
-          }
+          '& .MuiSnackbarContent-root': { backgroundColor: '#f44336', color: 'white', fontWeight: 'bold' }
         }}
       />
-      <div className="flex justify-center items-center h-screen">
-        <div className="p-5 border border-gray-300 rounded shadow flex flex-col gap-6">
-          <h1 className='text-2xl font-semibold'>Login</h1>
-          <form onSubmit={handleSubmit} className='flex flex-col gap-1'>
-            <Box
-              component="form"
-              sx={{ '& .MuiTextField-root': { mb: 2, width: '25ch' } }}
-              noValidate
-              autoComplete="off"
-            >
-              <div className="flex flex-col gap-2">
-                <TextField
-                  id="outlined-helperText"
-                  label="Username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-80 m-0"
-                  required
-                />
-                {emailError && <p className="text-red-500 text-sm -mt-5 mb-2 text-center">{emailError}</p>}
-                <TextField
-                  id="outlined-password-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  className="w-full m-0"
-                />
-                {passwordError && <p className="text-red-500 -mt-5 mb-2 text-sm text-center">{passwordError}</p>}
-              </div>
-            </Box>
-            <Button type="submit" className="w-full mt-8" size="large" variant="contained">Log in</Button>
-          </form>
-        </div>
-      </div>
-    </>
+      <Paper elevation={3} sx={{ py: 4 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
+          Login
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off">
+          <TextField
+            label="Email"
+            fullWidth
+            variant="outlined"
+            margin="normal"
+            value={credentials.email}
+            onChange={(e) => {
+              setCredentials({ ...credentials, email: e.target.value });
+              setErrors({ ...errors, email: '' });
+            }}
+            sx={{ maxWidth: '300px' }}
+            required
+            error={Boolean(errors.email)}
+            helperText={errors.email}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            variant="outlined"
+            margin="normal"
+            value={credentials.password}
+            sx={{ maxWidth: '300px' }}
+            onChange={(e) => {
+              setCredentials({ ...credentials, password: e.target.value });
+              setErrors({ ...errors, password: '' });
+            }}
+            required
+            error={Boolean(errors.password)}
+            helperText={errors.password}
+          />
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button variant="contained" color="primary" type="submit">
+              Login
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 
