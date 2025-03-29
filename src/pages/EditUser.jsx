@@ -12,11 +12,14 @@ const EditUser = () => {
   const [open, setOpen] = useState(false); // Snackbar open state for error notifications
   const navigate = useNavigate();
 
-  // Fetch user details from API for pre-filling the form
-  const fetchUser = async () => {
+  useEffect(() => {
     if (localStorage.getItem('token') === null) {
       navigate('/login'); // Redirect to login if token is not present
     }
+  }, [])
+
+  // Fetch user details from API for pre-filling the form
+  const fetchUser = async () => {
     try {
       const res = await api.get(`/api/users/${id}`);
       setUser(res.data.data);
