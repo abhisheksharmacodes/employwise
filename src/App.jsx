@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import UserList from './pages/UserList';
@@ -10,8 +10,10 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
+
+  const [users, setUsers] = useState([]);
+
   return (
-    // ...existing code...
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -20,7 +22,6 @@ function App() {
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
-    // ...existing code...
   );
 }
 

@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import { Container, Paper, Box, TextField, Button, Typography, Snackbar } from '@mui/material';
+import { Paper, Box, TextField, Button, Typography, Snackbar } from '@mui/material';
 
 const EditUser = () => {
   const { id } = useParams();
+  // State to hold user details for editing
   const [user, setUser] = useState({ first_name: '', last_name: '', email: '' });
+  // Per-field validation errors
   const [errors, setErrors] = useState({ first_name: '', last_name: '', email: '' });
-  const [globalError, setGlobalError] = useState('');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // Snackbar open state for error notifications
   const navigate = useNavigate();
 
+  // Fetch user details from API for pre-filling the form
   const fetchUser = async () => {
     try {
       const res = await api.get(`/api/users/${id}`);
       setUser(res.data.data);
     } catch (err) {
-      setGlobalError('Failed to fetch user data.');
+      setOpen(true); // Open Snackbar when fetch fails
     }
   };
 
@@ -24,6 +26,7 @@ const EditUser = () => {
     fetchUser();
   }, [id]);
 
+  // Validate user inputs with meaningful error messages
   const validate = () => {
     const newErrors = { first_name: '', last_name: '', email: '' };
     let isValid = true;
@@ -49,18 +52,20 @@ const EditUser = () => {
     return isValid;
   };
 
+  // Submit updated user information to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    setGlobalError('');
+    if (!validate()) return; // Do not submit if validation fails
     try {
       await api.put(`/api/users/${id}`, user);
-      navigate('/users');
+      navigate('/users'); // Redirect back to user list on success
     } catch (err) {
-      setOpen(true);
+      setOpen(true); // Open Snackbar if update fails
+      console.error('Error updating user:', err);
     }
   };
 
+  // Close Snackbar
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') return;
     setOpen(false);
@@ -75,20 +80,16 @@ const EditUser = () => {
         message="Update failed."
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         sx={{
-          '& .MuiSnackbarContent-root': {
-            backgroundColor: '#f44336',
-            color: 'white',
-            fontWeight: 'bold',
-          }
+          '& .MuiSnackbarContent-root': { backgroundColor: '#f44336', color: 'white', fontWeight: 'bold' }
         }}
       />
-      <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <div className='w-fit mx-auto mt-10 p-0'>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h5" component="h2" gutterBottom>
             Edit User
           </Typography>
-          {globalError && <Typography color="error" sx={{ mb: 2 }}>{globalError}</Typography>}
-          <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off">
+          <Box component="form" className='flex flex-col' onSubmit={handleSubmit} noValidate autoComplete="off">
+            {/* First Name field */}
             <TextField
               label="First Name"
               fullWidth
@@ -100,14 +101,17 @@ const EditUser = () => {
                 setErrors({ ...errors, first_name: '' });
               }}
               required
+              sx={{ maxWidth: '300px' }}
               error={Boolean(errors.first_name)}
               helperText={errors.first_name}
             />
+            {/* Last Name field */}
             <TextField
               label="Last Name"
               fullWidth
               variant="outlined"
               margin="normal"
+              sx={{ maxWidth: '300px' }}
               value={user.last_name}
               onChange={(e) => {
                 setUser({ ...user, last_name: e.target.value });
@@ -117,10 +121,12 @@ const EditUser = () => {
               error={Boolean(errors.last_name)}
               helperText={errors.last_name}
             />
+            {/* Email field */}
             <TextField
               label="Email"
               fullWidth
               variant="outlined"
+              sx={{ maxWidth: '300px' }}
               margin="normal"
               type="email"
               value={user.email}
@@ -142,7 +148,7 @@ const EditUser = () => {
             </Box>
           </Box>
         </Paper>
-      </Container>
+      </div>
     </>
   );
 };
