@@ -97,7 +97,7 @@ const UserList = () => {
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ maxWidth: '300px' }}
+            sx={{ maxWidth: '500px' }}
           />
         </div>
         {/* User cards are displayed below */}
