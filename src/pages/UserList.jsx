@@ -20,6 +20,9 @@ const UserList = () => {
 
   // Fetch user data from API based on page number
   const fetchUsers = async (pageNumber) => {
+    if (localStorage.getItem('token') === null) {
+      navigate('/login'); // Redirect to login if token is not present
+    }
     try {
       // Debug log for development purposes
       console.log('Fetching users for page:', pageNumber);

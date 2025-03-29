@@ -14,6 +14,9 @@ const EditUser = () => {
 
   // Fetch user details from API for pre-filling the form
   const fetchUser = async () => {
+    if (localStorage.getItem('token') === null) {
+      navigate('/login'); // Redirect to login if token is not present
+    }
     try {
       const res = await api.get(`/api/users/${id}`);
       setUser(res.data.data);
